@@ -65,14 +65,19 @@ func (s *client) newConn() error {
 
 func NewIndex(name, db string) *Index {
 	cl := newClient(db)
-	return &Index{cl: cl, name: name}
+	return &Index{
+		cl:       cl,
+		name:     name,
+		settings: map[string]string{},
+		mappings: map[string]string{},
+	}
 }
 
 type Index struct {
 	cl       *client
 	name     string
 	settings map[string]string
-	docTypes []*DocType
+	mappings map[string]string
 }
 
 func (s *Index) CheckStructure() error {
@@ -90,21 +95,21 @@ func (s *Index) indexExists(index string) (bool, error) {
 	return s.cl.conn.IndexExists(index).Do(context.TODO())
 }
 
+func (s *Index) AddMapping(docType, mapping string) {
+	s.mappings[docType] = mapping
+}
+
+func (s *Index) AddSettings(settings map[string]string) {
+	for k, v := range settings {
+		s.settings[k] = v
+	}
+}
+
 // CreateIndex creates an index by name. The index specified in the struct is created anyway if it doesnt exist.
 func (s *Index) CreateIndex(index string) error {
-	if s.settings == nil {
-		s.settings = map[string]string{}
-	}
-
-	mappings := map[string]string{}
-	for _, docType := range s.docTypes {
-		if docType.mapping != "" {
-			mappings[docType.name] = docType.mapping
-		}
-	}
 	body := fmt.Sprintf(`{"settings": %s, "mappings": %s}`,
 		strings.Trim(fmt.Sprintf("%#v", s.settings), "map[string]"),
-		strings.Trim(fmt.Sprintf("%#v", mappings), "map[string]"))
+		strings.Trim(fmt.Sprintf("%#v", s.mappings), "map[string]"))
 
 	createIndex, err := s.cl.conn.CreateIndex(index).Body(body).Do(context.TODO())
 	if err == nil && !createIndex.Acknowledged {
@@ -138,18 +143,16 @@ func (s *Index) DeleteIndexTemplate(name string) error {
 	return err
 }
 
-func NewDocType(index *Index, name string, mapping string) *DocType {
-	return &DocType{
-		Index:   index,
-		name:    name,
-		mapping: mapping,
+func NewDocType(index *Index, name string) DocType {
+	return DocType{
+		Index: index,
+		name:  name,
 	}
 }
 
 type DocType struct {
 	*Index
-	name    string
-	mapping string
+	name string
 }
 
 // IndexDoc creates a document in elasticsearch
