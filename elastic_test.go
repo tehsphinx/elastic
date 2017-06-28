@@ -63,7 +63,7 @@ var indexingTests = []struct {
 
 func TestIndex(t *testing.T) {
 	ind := NewIndex("unit_test", "local")
-	doc := NewDocType(ind, "test", ``)
+	doc := NewDocType(ind, "test")
 	for _, tt := range indexingTests {
 		if actual, err := doc.IndexDoc(tt.doc, tt.id); err != nil {
 			t.Error(err)
@@ -84,7 +84,7 @@ var getTests = []struct {
 
 func TestGet(t *testing.T) {
 	ind := NewIndex("unit_test", "local")
-	doc := NewDocType(ind, "test", ``)
+	doc := NewDocType(ind, "test")
 	for _, tt := range getTests {
 		if actual, err := doc.Get(tt.id); err != nil {
 			t.Error(err)
@@ -111,7 +111,7 @@ var searchTests = []struct {
 
 func TestSearch(t *testing.T) {
 	ind := NewIndex("unit_test", "local")
-	doc := NewDocType(ind, "test", ``)
+	doc := NewDocType(ind, "test")
 	for _, tt := range searchTests {
 		if actual, err := doc.Search(tt.json); err != nil {
 			t.Error(err)
@@ -131,7 +131,7 @@ var deleteTests = []struct {
 
 func TestDelete(t *testing.T) {
 	ind := NewIndex("unit_test", "local")
-	doc := NewDocType(ind, "test", ``)
+	doc := NewDocType(ind, "test")
 	for _, tt := range deleteTests {
 		if found, err := doc.Delete(tt.id); err != nil {
 			t.Error(err)
