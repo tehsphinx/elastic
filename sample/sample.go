@@ -1,20 +1,20 @@
 package sample
 
 import (
-	es "github.com/tehsphinx/elastic"
+	"github.com/tehsphinx/elastic"
 )
 
 var (
-	esIndex1 *es.Index
+	esIndex1 *eso.Index
 )
 
 // Init is to be called ONCE on app startup to initialize the structure
 func Init() {
 	// register the url
-	es.RegisterClient("db", "http://127.0.0.1:9200")
+	eso.RegisterClient("db", "http://127.0.0.1:9200")
 
 	// create all the indexes you need instantiating them once
-	esIndex1 = es.NewIndex("index1", "db")
+	esIndex1 = eso.NewIndex("index1", "db")
 
 	// optionally you can add settings and mappings to the index
 	// Note: Only do this if you want to call esIndex1.CheckStructure()
@@ -36,10 +36,10 @@ func Init() {
 
 func NewDocType1() *DocType1 {
 	return &DocType1{
-		DocType: es.NewDocType(esIndex1, "docType1"),
+		DocType: eso.NewDocType(esIndex1, "docType1"),
 	}
 }
 
 type DocType1 struct {
-	es.DocType
+	eso.DocType
 }
