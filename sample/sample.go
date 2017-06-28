@@ -19,8 +19,10 @@ func Init() {
 	// optionally you can add settings and mappings to the index
 	// Note: Only do this if you want to call esIndex1.CheckStructure()
 	esIndex1.AddSettings(map[string]string{
-		"number_of_shards":   "5",
-		"number_of_replicas": "1",
+		"index": `{
+				"number_of_shards": 5,
+				"number_of_replicas": 1
+			}`,
 	})
 	esIndex1.AddMapping("docType1", "some docType mapping")
 
