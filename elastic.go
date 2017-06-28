@@ -99,17 +99,15 @@ func (s *Index) AddMapping(docType, mapping string) {
 	s.mappings[docType] = mapping
 }
 
-func (s *Index) AddSettings(settings map[string]string) {
-	for k, v := range settings {
-		s.settings[k] = v
-	}
+func (s *Index) AddSetting(key, settings string) {
+	s.settings[key] = settings
 }
 
 // CreateIndex creates an index by name. The index specified in the struct is created anyway if it doesnt exist.
 func (s *Index) CreateIndex(index string) error {
 	body := fmt.Sprintf(`{"settings": %s, "mappings": %s}`,
-		strings.Trim(fmt.Sprintf("%#v", s.settings), "map[string]"),
-		strings.Trim(fmt.Sprintf("%#v", s.mappings), "map[string]"))
+		formatMapOfStrings(s.settings),
+		formatMapOfStrings(s.mappings))
 
 	createIndex, err := s.cl.conn.CreateIndex(index).Body(body).Do(context.TODO())
 	if err == nil && !createIndex.Acknowledged {
@@ -184,4 +182,14 @@ func (s *DocType) Delete(id string) (bool, error) {
 // Search takes a json search string and executes it, returning the result
 func (s *DocType) Search(json interface{}) (*elastic.SearchResult, error) {
 	return s.cl.conn.Search(s.Index.name).Source(json).Pretty(true).Do(context.TODO())
+}
+
+func formatMapOfStrings(m map[string]string) string {
+	s := fmt.Sprintf("%#v", m)
+	s = strings.Replace(s, "\\\"", "\"", -1)
+	s = strings.Replace(s, "\"{", "{", -1)
+	s = strings.Replace(s, "}\"", "}", -1)
+	s = strings.Replace(s, "\\n", "", -1)
+	s = strings.Replace(s, "\\t", "", -1)
+	return strings.Trim(s, "map[string]")
 }
