@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"reflect"
 	"strings"
 
 	"gopkg.in/olivere/elastic.v5"
@@ -211,5 +212,90 @@ func (s *Doc) Save() error {
 		return err
 	}
 	s.ID = id
+	return nil
+}
+
+func (s *Doc) FillByID(target interface{}, id string) error {
+	res, err := s.DocType.Get(id)
+	if err != nil {
+		return err
+	}
+
+	return s.fillFields(target, res.Fields)
+}
+
+func (s *Doc) fillFields(res interface{}, fields map[string]interface{}) error {
+	vt := reflect.TypeOf(res)
+
+	if vt.Kind() != reflect.Ptr {
+		return errors.New("res is not a pointer")
+	}
+
+	return s._fillFields(reflect.ValueOf(res), fields)
+}
+
+func (s *Doc) _fillFields(v reflect.Value, fields map[string]interface{}) error {
+	for v.Kind() == reflect.Ptr {
+		v = v.Elem()
+	}
+	vt := v.Type()
+
+	fieldMap := map[string]string{}
+	for i := 0; i < vt.NumField(); i++ {
+		field := vt.Field(i)
+		tag := field.Tag.Get("json")
+
+		if tag != "" && tag != "-" {
+			fieldMap[tag] = field.Name
+		}
+	}
+
+	for key, val := range fields {
+		// get struct field name by json tag
+		fieldKey, ok := fieldMap[key]
+		if !ok {
+			continue
+		}
+
+		valT := reflect.TypeOf(val)
+		valV := reflect.ValueOf(val)
+		field := reflect.Indirect(v).FieldByName(fieldKey)
+
+		switch valT.Kind() {
+		case reflect.Int:
+			field.SetInt(valV.Int())
+		case reflect.String:
+			field.SetString(valV.String())
+		case reflect.Float64:
+			fallthrough
+		case reflect.Float32:
+			field.SetFloat(valV.Float())
+		case reflect.Map:
+			val1, ok := val.(map[string]interface{})
+			if !ok {
+				return errors.New(fmt.Sprintf("could not cast to map[string]interface{}: %s", val))
+			}
+			err := s._fillFields(field, val1)
+			if err != nil {
+				return err
+			}
+		case reflect.Slice:
+			l := valV.Len()
+			sl := reflect.MakeSlice(field.Type(), l, l)
+			for i := 0; i < sl.Len(); i++ {
+				val1, ok := val.([]map[string]interface{})
+				if !ok {
+					return errors.New(fmt.Sprintf("could not cast to []map[string]interface{}: %s", val))
+				}
+				err := s._fillFields(sl.Index(i), val1[i])
+				if err != nil {
+					return err
+				}
+			}
+			field.Set(sl)
+		default:
+			return errors.New("elastic Doc._fillFields: unsupported type")
+		}
+	}
 	return nil
 }
