@@ -2,6 +2,7 @@ package eso
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -156,7 +157,19 @@ type DocType struct {
 
 // IndexDoc creates a document in elasticsearch
 func (s *DocType) IndexDoc(doc interface{}, id string) (string, error) {
-	q := s.cl.conn.Index().Index(s.Index.name).Type(s.name).BodyJson(doc)
+	var (
+		body string
+		ok   bool
+	)
+	if body, ok = doc.(string); !ok {
+		d, err := json.Marshal(doc)
+		if err != nil {
+			return "", err
+		}
+		body = string(d)
+	}
+
+	q := s.cl.conn.Index().Index(s.Index.name).Type(s.name).BodyJson(body)
 	if id != "" {
 		q = q.Id(id)
 	}
