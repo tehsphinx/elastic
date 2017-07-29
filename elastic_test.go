@@ -1,7 +1,6 @@
 package eso
 
 import (
-	"fmt"
 	"log"
 	"testing"
 )
@@ -175,46 +174,6 @@ func TestDeleteIndexTemplate(t *testing.T) {
 			t.Error(err)
 		}
 	}
-}
-
-type User struct {
-	Email     string    `json:"email"`
-	Pass      string    `json:"pass"`
-	SomeID    int       `json:"someID"`
-	Float32   float32   `json:"float32"`
-	Float64   float64   `json:"float64"`
-	Accounts  []Account `json:"accounts"`
-	Account   Account   `json:"account"`
-	IgnoreTag int       `json:"-"`
-	NoTag     int
-}
-
-type Account struct {
-	BankID     string `json:"bankID"`
-	CustomerID string `json:"customerID"`
-	Pass       string `json:"pass"`
-}
-
-func TestFillFields(t *testing.T) {
-	u := &User{}
-	fields := map[string]interface{}{
-		"email":   "email",
-		"pass":    "pass",
-		"someID":  2341,
-		"float32": 1.234,
-		"float64": 5.6789,
-		"accounts": []map[string]interface{}{
-			{"bankID": "bankID1", "customerID": "customerID1", "pass": "pass1"},
-			{"bankID": "bankID2", "customerID": "customerID2", "pass": "pass2"},
-		},
-		"account": map[string]interface{}{"bankID": "bankID3", "customerID": "customerID3", "pass": "pass3"},
-	}
-
-	d := NewDoc(nil)
-	if err := d.fillFields(u, fields); err != nil {
-		t.Error(err)
-	}
-	fmt.Println(u)
 }
 
 // func Test1(t *testing.T) {
