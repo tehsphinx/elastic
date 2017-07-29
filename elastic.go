@@ -239,3 +239,7 @@ func (s *Doc) FillByID(target interface{}, id string) error {
 
 	return json.Unmarshal([]byte(*res.Source), target)
 }
+
+func (s *Doc) Delete() (bool, error) {
+	return s.DocType.Delete(s.ID)
+}
