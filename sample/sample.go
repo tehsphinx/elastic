@@ -50,5 +50,5 @@ func NewDocType1() *DocType1 {
 }
 
 type DocType1 struct {
-	eso.DocType
+	*eso.DocType
 }

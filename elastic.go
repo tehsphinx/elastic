@@ -141,8 +141,8 @@ func (s *Index) DeleteIndexTemplate(name string) error {
 	return err
 }
 
-func NewDocType(index *Index, name string) DocType {
-	return DocType{
+func NewDocType(index *Index, name string) *DocType {
+	return &DocType{
 		Index: index,
 		name:  name,
 	}
@@ -192,4 +192,24 @@ func formatMapOfStrings(m map[string]string) string {
 	s = strings.Replace(s, "\\n", "", -1)
 	s = strings.Replace(s, "\\t", "", -1)
 	return strings.Trim(s, "map[string]")
+}
+
+func NewDoc(docType *DocType) *Doc {
+	return &Doc{
+		docType: docType,
+	}
+}
+
+type Doc struct {
+	docType *DocType
+	ID      string `json:"-"`
+}
+
+func (s *Doc) Save() error {
+	id, err := s.docType.IndexDoc(s, s.ID)
+	if err != nil {
+		return err
+	}
+	s.ID = id
+	return nil
 }
