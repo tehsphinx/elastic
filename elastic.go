@@ -196,17 +196,17 @@ func formatMapOfStrings(m map[string]string) string {
 
 func NewDoc(docType *DocType) *Doc {
 	return &Doc{
-		docType: docType,
+		DocType: docType,
 	}
 }
 
 type Doc struct {
-	docType *DocType
-	ID      string `json:"-"`
+	DocType *DocType `json:"-"`
+	ID      string   `json:"-"`
 }
 
 func (s *Doc) Save() error {
-	id, err := s.docType.IndexDoc(s, s.ID)
+	id, err := s.DocType.IndexDoc(s, s.ID)
 	if err != nil {
 		return err
 	}
